@@ -24,9 +24,19 @@ def profit_factor(profits):
         return float('inf')
     return wins / losses
 
+def max_drawdown(profits):
+    balance = 0
+    best = 0
+    drop = 0
+    for profit in profits:
+        balance += profit
+        if balance > best:
+            best = balance
+        if ( best - balance ) > drop:
+            drop = best - balance
+    return drop
 
 
 if __name__ == '__main__':
-    profits = []
-    #print(win_rate(profits))
-    print(profit_factor(profits))
+    profits = [5, -2, -2, 4, -6, 1]
+    print(max_drawdown(profits))
