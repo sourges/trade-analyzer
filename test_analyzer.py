@@ -1,7 +1,9 @@
-from analyzer import win_rate, profit_factor, max_drawdown
+from analyzer import win_rate, profit_factor, max_drawdown, read_profits
 import unittest
+import os
 
 class TestWinRate(unittest.TestCase):
+
 
     def test_mixed_trades(self):
         profits = [2, -1, 3, -1]
@@ -105,6 +107,52 @@ class TestWinRate(unittest.TestCase):
         answer = max_drawdown(profits)
         self.assertEqual(answer, expected)
 
+THREE_ROWS = """time,exchange,pair,side,entry_price,exit_price,amount,entry_cost,exit_cost,fees,profit
+2026-10-25 10:00:00,kraken,CRV/USD,long,0.36964,0.38077,165.02,60.998,62.8347,0.3715,1.4652
+2026-10-25 11:00:00,kraken,CRV/USD,short,0.38077,0.36964,160.2,61.0,59.2,0.36,-0.5
+2026-10-25 12:00:00,kraken,CRV/USD,long,0.35884,0.36964,170.0,61.0,62.8,0.37,0.2
+"""
+
+class ReadProfitsTest(unittest.TestCase):
+
+    def setUp(self):
+        self.filename = 'test_trades.csv'
+        self.header_file = 'test_header_only.csv'
+        with open(self.filename, 'w', newline='') as f:
+            f.write(THREE_ROWS)
+
+    def test_read_three_row(self):
+        expected = [1.4652, -0.5, 0.2]
+        profits = read_profits(self.filename)
+        self.assertEqual(profits, expected)
+
+    def test_header_only(self):
+        # write a file that has ONLY the column names, no trades
+        header = THREE_ROWS.splitlines()[0]
+        with open(self.header_file, 'w', newline='') as f:
+            f.write(header)
+
+        expected = []
+        profits = read_profits(self.header_file)
+        self.assertEqual(profits, expected)
+    
+    def test_win_rate_file(self):
+        expected = 2/3
+        profits = read_profits(self.filename)
+        answer = win_rate(profits)
+        self.assertAlmostEqual(answer, expected)
+
+    def test_missing_file_raises(self):
+        with self.assertRaises(FileNotFoundError):
+            read_profits('no_such_file.csv')
+    
+    def tearDown(self):
+        if os.path.exists(self.filename):
+            os.remove(self.filename)
+        if os.path.exists(self.header_file):
+            os.remove(self.header_file)
+
+    
 
 if __name__ == '__main__':
     unittest.main()

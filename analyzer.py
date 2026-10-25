@@ -1,3 +1,5 @@
+import csv
+
 def win_rate(profits):
     wins = 0
     if len(profits) == 0:
@@ -36,6 +38,13 @@ def max_drawdown(profits):
             drop = best - balance
     return drop
 
+def read_profits(filename):
+    profits = []
+    with open(filename, newline='') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            profits.append(float(row['profit']))
+    return profits
 
 if __name__ == '__main__':
     profits = [5, -2, -2, 4, -6, 1]
